@@ -1,6 +1,6 @@
 # 3D Rotational Kinematics Visualizer
 
-**[🟢 View the Live Interactive App Here](https://dhrumil0309.github.io/3d-rotation-visualizer/)**
+**[ View the Live Interactive App Here](https://dhrumil0309.github.io/3d-rotation-visualizer/)**
 
 ## Overview
 Understanding spatial transformations is a critical foundation for mechanical engineering, robotics, and autonomous systems (such as localization and sensor fusion). This interactive web application serves as a real-time mathematical bridge between visual frame orientations and their underlying algebraic representations. 
