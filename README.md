@@ -1,38 +1,38 @@
-# Interactive Rotational Kinematics Visualizer
+# 3D Rotational Kinematics Visualizer
 
-A client-side 3D web application to visualize rigid-body rotational kinematics in real time using Three.js and Math.js.
+**[🟢 View the Live Interactive App Here](https://dhrumil0309.github.io/3d-rotation-visualizer/)**
 
-## Features
+## Overview
+Understanding spatial transformations is a critical foundation for mechanical engineering, robotics, and autonomous systems (such as localization and sensor fusion). This interactive web application serves as a real-time mathematical bridge between visual frame orientations and their underlying algebraic representations. 
 
-- **Dual Coordinate Frames**:
-  - **Ground Frame (Fixed Reference)**: Rendered with muted, dashed gray lines and axis labels (`X_ground`, `Y_ground`, `Z_ground`).
-  - **Body Frame (Rotating Rigid Body)**: Rendered with bold solid Red (X), Green (Y), and Blue (Z) arrows and axis labels (`X_body`, `Y_body`, `Z_body`).
-- **Euler Angle Sliders**:
-  - Intrinsic **Z-Y-X sequence** (Yaw $\psi$, Pitch $\theta$, Roll $\phi$), ranging from $-180^\circ$ to $+180^\circ$ with $0.5^\circ$ precision.
-- **Rotation Matrix $R$**:
-  - Computes composite $R = R_z(\psi) \cdot R_y(\theta) \cdot R_x(\phi)$ live on every input movement.
-  - Rendered in a formatted 3x3 monospace right-aligned grid to 3 decimal places.
-- **Principal Rotation Angle $\theta_p$**:
-  - Derived from matrix trace $\text{tr}(R)$ via Euler's rotation theorem: $\theta_p = \arccos\left(\frac{\text{tr}(R) - 1}{2}\right)$.
-  - Safeguarded against floating-point drift at domain boundaries.
-- **Interactive 3D Viewport**:
-  - Full mouse controls via Three.js `OrbitControls` (Left-click drag to orbit, Right-click drag to pan, Scroll to zoom).
-  - Spatial reference ground grid and dynamic lighting.
-  - "Reset to Identity" button to return all sliders to $0.0^\circ$.
+Users can manually manipulate a rigid body frame relative to a fixed ground frame using Z-Y-X Euler angles, instantly outputting the corresponding rotation matrix, principal rotation parameters, and spatial translations.
 
-## Running Locally
+## Key Features
+* **Interactive 3D Rendering:** Smooth, real-time visualization of a fixed Ground Frame and a dynamic Body Frame using Three.js, complete with orbit, pan, and zoom controls.
+* **Precision Controls:** Bi-directional input via sliders and numeric text boxes for exact angular manipulation without slider jitter.
+* **Dynamic Matrix Algebra:** Real-time calculation and display of the $3 \times 3$ rotation matrix $R$ that maps the body frame to the reference frame.
+* **Euler's Rotation Theorem:** Calculates and displays the principal rotation angle $\theta$ directly from the matrix trace.
+* **Principal Axis Visualization:** Features a toggleable 3D vector representing the instantaneous axis of rotation $(l, m, n)$ required to align the frames perfectly.
+* **Spatial Translation $SE(3)$:** Additional controls to apply X, Y, and Z origin offsets, expanding the visualization from pure rotation to a full rigid body transformation.
+* **Mathematical Invariants:** Live readout of the matrix determinant to verify proper orthogonal rotations (where $\det(R) = 1$).
 
-No build tools, bundlers, or package installations are required.
+## Mathematical Background
+The tool visually demonstrates the mapping of a 3D coordinate frame into the Special Orthogonal Group $SO(3)$. The principal rotation angle $\theta$ is extracted from the trace of the rotation matrix $R$:
 
-### Option 1: Using a simple HTTP server (Recommended for ES Modules)
-```bash
-# Using Node / npx:
-npx serve .
+$$ \theta = \arccos\left(\frac{\text{tr}(R) - 1}{2}\right) $$
 
-# Or using Python:
-python -m http.server 8000
-```
-Then open `http://localhost:8000` (or the port shown in terminal) in any modern web browser.
+For any valid spatial rotation, the determinant of the transformation matrix is invariant:
 
-### Option 2: Direct File Open
-Open `index.html` directly in a browser supporting local ES modules.
+$$ \det(R) = 1 $$
+
+## Tech Stack
+* **Frontend:** HTML5, CSS3 (Responsive Grid/Flexbox UI)
+* **3D Graphics:** [Three.js](https://threejs.org/)
+* **Mathematics:** [Math.js](https://mathjs.org/) (for complex matrix operations and vector algebra)
+
+## How to Run Locally
+This application runs entirely client-side and does not require a backend server. 
+
+1. Clone the repository: 
+   ```bash
+   git clone [https://github.com/Dhrumil0309/3d-rotation-visualizer.git](https://github.com/Dhrumil0309/3d-rotation-visualizer.git)
