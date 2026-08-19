@@ -1,6 +1,6 @@
 # 3D Rotational Kinematics Visualizer
 
-**[View the Live Interactive App Here](https://dhrumil0309.github.io/3d-rotation-visualizer/)**
+**[ View the Live Interactive App Here](https://dhrumil0309.github.io/3d-rotation-visualizer/)**
 
 ## Overview
 Understanding spatial transformations is a critical foundation for mechanical engineering, robotics, and autonomous systems (such as localization and sensor fusion). This interactive web application serves as a real-time mathematical bridge between visual frame orientations and their underlying algebraic representations. 
@@ -18,23 +18,31 @@ Users can manually manipulate a rigid body frame relative to a fixed ground fram
 ## Mathematical Background
 
 ### 1. Frame Transformation Matrix
-A rotation matrix maps a vector from the Body Frame to the Ground Frame. For a Z-Y-X intrinsic rotation sequence (Yaw $\psi$, Pitch $\theta$, Roll $\phi$), the combined $3 \times 3$ rotation matrix $R$ is obtained by multiplying the fundamental rotation matrices:
+A rotation matrix maps a vector from the Body Frame to the Ground Frame. For a Z-Y-X intrinsic rotation sequence, the final orientation is achieved by multiplying three fundamental rotation matrices:
 
-$$ \mathbf{v}_{ground} = R_{Z}(\psi) R_{Y}(\theta) R_{X}(\phi) \mathbf{v}_{body} $$
+**Rotation around X-axis (Roll):**
+$$ R_X(\text{roll}) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos(\text{roll}) & -\sin(\text{roll}) \\ 0 & \sin(\text{roll}) & \cos(\text{roll}) \end{bmatrix} $$
 
-Expanded using sine ($s$) and cosine ($c$), the matrix multiplication mapping the coordinates looks like this:
+**Rotation around Y-axis (Pitch):**
+$$ R_Y(\text{pitch}) = \begin{bmatrix} \cos(\text{pitch}) & 0 & \sin(\text{pitch}) \\ 0 & 1 & 0 \\ -\sin(\text{pitch}) & 0 & \cos(\text{pitch}) \end{bmatrix} $$
 
-$$ \begin{bmatrix} x_{ground} \\ y_{ground} \\ z_{ground} \end{bmatrix} = \begin{bmatrix} c_\psi c_\theta & c_\psi s_\theta s_\phi - s_\psi c_\phi & c_\psi s_\theta c_\phi + s_\psi s_\phi \\ s_\psi c_\theta & s_\psi s_\theta s_\phi + c_\psi c_\phi & s_\psi s_\theta c_\phi - c_\psi s_\phi \\ -s_\theta & c_\theta s_\phi & c_\theta c_\phi \end{bmatrix} \begin{bmatrix} x_{body} \\ y_{body} \\ z_{body} \end{bmatrix} $$
+**Rotation around Z-axis (Yaw):**
+$$ R_Z(\text{yaw}) = \begin{bmatrix} \cos(\text{yaw}) & -\sin(\text{yaw}) & 0 \\ \sin(\text{yaw}) & \cos(\text{yaw}) & 0 \\ 0 & 0 & 1 \end{bmatrix} $$
+
+**The Combined Transformation Matrix:**
+To get the final combined matrix $R$, we multiply these together in the order $R = R_Z(\text{yaw}) \times R_Y(\text{pitch}) \times R_X(\text{roll})$. The fully expanded matrix mapping the body coordinates to the ground coordinates is:
+
+$$ \begin{bmatrix} x_{\text{ground}} \\ y_{\text{ground}} \\ z_{\text{ground}} \end{bmatrix} = \begin{bmatrix} \cos(\text{yaw})\cos(\text{pitch}) & \cos(\text{yaw})\sin(\text{pitch})\sin(\text{roll}) - \sin(\text{yaw})\cos(\text{roll}) & \cos(\text{yaw})\sin(\text{pitch})\cos(\text{roll}) + \sin(\text{yaw})\sin(\text{roll}) \\ \sin(\text{yaw})\cos(\text{pitch}) & \sin(\text{yaw})\sin(\text{pitch})\sin(\text{roll}) + \cos(\text{yaw})\cos(\text{roll}) & \sin(\text{yaw})\sin(\text{pitch})\cos(\text{roll}) - \cos(\text{yaw})\sin(\text{roll}) \\ -\sin(\text{pitch}) & \cos(\text{pitch})\sin(\text{roll}) & \cos(\text{pitch})\cos(\text{roll}) \end{bmatrix} \begin{bmatrix} x_{\text{body}} \\ y_{\text{body}} \\ z_{\text{body}} \end{bmatrix} $$
 
 ### 2. 3 Rotations vs. 1 Rotation (Euler's Theorem)
-If a body frame is inclined across all three axes, reaching that state via Euler Angles requires **3 separate rotations**. However, Euler's Rotation Theorem states that any 3D orientation can be achieved by exactly **1 single rotation** around a specific Principal Axis.
+If a body frame is inclined across all three axes, reaching that state via Euler Angles requires **3 separate sequential rotations**. However, Euler's Rotation Theorem states that any 3D orientation can be achieved by exactly **1 single rotation** around a specific Principal Axis.
 
 The visualizer calculates this single Principal Rotation Angle $\theta_p$ directly from the trace of our rotation matrix $R$:
 
 $$ \theta_p = \arccos\left(\frac{\text{tr}(R) - 1}{2}\right) $$
 
 ### 3. Orthogonal Invariance
-For any valid spatial rotation, the determinant of the transformation matrix is invariant, proving the rigid body does not stretch or reflect:
+For any valid spatial rotation, the determinant of the transformation matrix is invariant, proving the rigid body does not stretch, skew, or reflect during rotation:
 
 $$ \det(R) = 1 $$
 
