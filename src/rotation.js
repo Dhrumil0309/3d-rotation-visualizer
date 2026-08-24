@@ -98,6 +98,20 @@ export function composeZYX(psi, theta, phi) {
 }
 
 /**
+ * Computes intrinsic Z-Y-X rotation matrix from angles in degrees: (yaw, pitch, roll).
+ * @param {number} yawDeg - Yaw in degrees (about Z)
+ * @param {number} pitchDeg - Pitch in degrees (about Y)
+ * @param {number} rollDeg - Roll in degrees (about X)
+ * @returns {number[][]} 3x3 composite rotation matrix
+ */
+export function computeR(yawDeg, pitchDeg, rollDeg) {
+  const psi = (yawDeg * Math.PI) / 180.0;
+  const theta = (pitchDeg * Math.PI) / 180.0;
+  const phi = (rollDeg * Math.PI) / 180.0;
+  return composeZYX(psi, theta, phi);
+}
+
+/**
  * Computes trace of a 3x3 matrix.
  * tr(R) = R11 + R22 + R33
  * @param {number[][]} R - 3x3 rotation matrix
