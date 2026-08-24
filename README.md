@@ -1,43 +1,89 @@
-# Interactive Rotational Kinematics Visualizer
+# 3D Rotational Kinematics Visualizer
 
-A client-side 3D web application to visualize rigid-body rotational kinematics in real time using Three.js and Math.js.
+**[ View the Live Interactive App Here](https://dhrumil0309.github.io/3d-rotation-visualizer/)**
 
-## Features
+## Overview
+Understanding spatial transformations is a critical foundation for mechanical engineering, robotics, and autonomous systems (such as localization and sensor fusion). This interactive web application serves as a real-time mathematical bridge between visual frame orientations and their underlying algebraic representations. 
 
-- **Dual Coordinate Frames**:
-  - **Ground Frame (Fixed Reference)**: Rendered with muted, dashed gray lines and axis labels (`X_ground`, `Y_ground`, `Z_ground`).
-  - **Body Frame (Rotating Rigid Body)**: Rendered with bold solid Red (X), Green (Y), and Blue (Z) arrows and axis labels (`X_body`, `Y_body`, `Z_body`).
-- **Euler Angle Sliders**:
-  - Intrinsic **Z-Y-X sequence** (Yaw $\psi$, Pitch $\theta$, Roll $\phi$), ranging from $-180^\circ$ to $+180^\circ$ with $0.5^\circ$ precision.
-- **Rotation Matrix $R$**:
-  - Computes composite $R = R_z(\psi) \cdot R_y(\theta) \cdot R_x(\phi)$ live on every input movement.
-  - Rendered in a formatted 3x3 monospace right-aligned grid to 3 decimal places.
-- **Principal Rotation Angle $\theta_p$**:
-  - Derived from matrix trace $\text{tr}(R)$ via Euler's rotation theorem: $\theta_p = \arccos\left(\frac{\text{tr}(R) - 1}{2}\right)$.
-  - Safeguarded against floating-point drift at domain boundaries.
-- **Interactive 3D Viewport**:
-  - Full mouse controls via Three.js `OrbitControls` (Left-click drag to orbit, Right-click drag to pan, Scroll to zoom).
-  - Spatial reference ground grid and dynamic lighting.
-  - "Reset to Identity" button to return all sliders to $0.0^\circ$.
+Users can manually manipulate a rigid body frame relative to a fixed ground frame using Z-Y-X Euler angles, instantly outputting the corresponding rotation matrix, principal rotation parameters, and spatial translations.
 
-## Running Locally
+## Key Features
+* **Interactive 3D Rendering:** Smooth, real-time visualization of a fixed Ground Frame and a dynamic Body Frame using Three.js, complete with orbit, pan, and zoom controls.
+* **Dynamic Matrix Algebra:** Real-time calculation and display of the $3 \times 3$ rotation matrix $R$ that maps the body frame to the reference frame.
+* **Euler Angles vs. Principal Axis:** Demonstrates the difference between 3 sequential fundamental rotations (Yaw, Pitch, Roll) and the single 1-step transformation defined by Euler's Rotation Theorem.
+* **Principal Axis Visualization:** Features a toggleable 3D vector representing the instantaneous axis of rotation $(l, m, n)$ required to align the frames perfectly.
+* **Spatial Translation $SE(3)$:** Additional controls to apply X, Y, and Z origin offsets, expanding the visualization from pure rotation to a full rigid body transformation.
+* **Mathematical Invariants:** Live readout of the matrix determinant to verify proper orthogonal rotations (where $\det(R) = 1$).
 
-No build tools, bundlers, or package installations are required.
+## Mathematical Background
 
-### Option 1: Using a simple HTTP server (Recommended for ES Modules)
-```bash
-# Using Node / npx:
-npx serve .
+### 1. Frame Transformation Matrix
+A rotation matrix maps a vector from the Body Frame to the Ground Frame. For a Z-Y-X intrinsic rotation sequence, the final orientation is achieved by multiplying three fundamental rotation matrices:
 
-# Or using Python:
-python -m http.server 8000
+**Rotation around X-axis (Roll):**
+```math
+R_X(\text{roll}) = \begin{bmatrix} 
+1 & 0 & 0 \\ 
+0 & \cos(\text{roll}) & -\sin(\text{roll}) \\ 
+0 & \sin(\text{roll}) & \cos(\text{roll}) 
+\end{bmatrix}
 ```
-Then open `http://localhost:8000` (or the port shown in terminal) in any modern web browser.
 
-### Option 2: Direct File Open
-Open `index.html` directly in a browser supporting local ES modules.
+**Rotation around Y-axis (Pitch):**
+```math
+R_Y(\text{pitch}) = \begin{bmatrix} 
+\cos(\text{pitch}) & 0 & \sin(\text{pitch}) \\ 
+0 & 1 & 0 \\ 
+-\sin(\text{pitch}) & 0 & \cos(\text{pitch}) 
+\end{bmatrix}
+```
 
----
+**Rotation around Z-axis (Yaw):**
+```math
+R_Z(\text{yaw}) = \begin{bmatrix} 
+\cos(\text{yaw}) & -\sin(\text{yaw}) & 0 \\ 
+\sin(\text{yaw}) & \cos(\text{yaw}) & 0 \\ 
+0 & 0 & 1 
+\end{bmatrix}
+```
+
+**The Combined Transformation Matrix:**
+To get the final combined matrix $R$, we multiply these together in the order $R = R_Z(\text{yaw}) \times R_Y(\text{pitch}) \times R_X(\text{roll})$. The fully expanded matrix mapping the body coordinates to the ground coordinates is:
+
+```math
+\begin{bmatrix} 
+x_{\text{ground}} \\ 
+y_{\text{ground}} \\ 
+z_{\text{ground}} 
+\end{bmatrix} 
+= 
+\begin{bmatrix} 
+\cos(\text{yaw})\cos(\text{pitch}) & \cos(\text{yaw})\sin(\text{pitch})\sin(\text{roll}) - \sin(\text{yaw})\cos(\text{roll}) & \cos(\text{yaw})\sin(\text{pitch})\cos(\text{roll}) + \sin(\text{yaw})\sin(\text{roll}) \\ 
+\sin(\text{yaw})\cos(\text{pitch}) & \sin(\text{yaw})\sin(\text{pitch})\sin(\text{roll}) + \cos(\text{yaw})\cos(\text{roll}) & \sin(\text{yaw})\sin(\text{pitch})\cos(\text{roll}) - \cos(\text{yaw})\sin(\text{roll}) \\ 
+-\sin(\text{pitch}) & \cos(\text{pitch})\sin(\text{roll}) & \cos(\text{pitch})\cos(\text{roll}) 
+\end{bmatrix} 
+\begin{bmatrix} 
+x_{\text{body}} \\ 
+y_{\text{body}} \\ 
+z_{\text{body}} 
+\end{bmatrix}
+```
+
+### 2. 3 Rotations vs. 1 Rotation (Euler's Theorem)
+If a body frame is inclined across all three axes, reaching that state via Euler Angles requires **3 separate sequential rotations**. However, Euler's Rotation Theorem states that any 3D orientation can be achieved by exactly **1 single rotation** around a specific Principal Axis.
+
+The visualizer calculates this single Principal Rotation Angle $\theta_p$ directly from the trace of our rotation matrix $R$:
+
+```math
+\theta_p = \arccos\left(\frac{\text{tr}(R) - 1}{2}\right)
+```
+
+### 3. Orthogonal Invariance
+For any valid spatial rotation, the determinant of the transformation matrix is invariant, proving the rigid body does not stretch, skew, or reflect during rotation:
+
+```math
+\det(R) = 1
+```
 
 ## Kinematics Proofs Mode
 
@@ -60,3 +106,25 @@ $$R\,\hat{\omega}\,R^T = \widehat{(R\,\omega)}$$
 - **Cell-by-Cell Equivalence Check**: Reactive 9-cell comparison matrix with green match indicators confirming $\max_{i,j} | \text{LHS}_{ij} - \text{RHS}_{ij} | < 10^{-6}$.
 - **3D Preview Viewport**: Visual preview comparing $\vec{\omega}$ and $R\vec{\omega}$.
 
+## Tech Stack
+* **Frontend:** HTML5, CSS3 (Responsive Grid/Flexbox UI)
+* **3D Graphics:** [Three.js](https://threejs.org/)
+* **Mathematics:** [Math.js](https://mathjs.org/) (for complex matrix operations and vector algebra)
+
+## How to Run Locally
+This application runs entirely client-side and does not require a backend server. 
+
+**Option 1: Clone and Run**
+1. Clone the repository: 
+   ```bash
+   git clone https://github.com/Dhrumil0309/3d-rotation-visualizer.git
+   ```
+2. Navigate to the project directory.
+3. Open `index.html` in any modern web browser. 
+
+**Option 2: Direct File Open**
+Open `index.html` directly in a browser supporting local ES modules.
+
+## Author
+**Bhutaiya Dhrumil Pareshbhai**  
+*B.Tech in Mechanical Engineering, Indian Institute of Technology Gandhinagar (IITGN)*
