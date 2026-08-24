@@ -85,6 +85,27 @@ For any valid spatial rotation, the determinant of the transformation matrix is 
 \det(R) = 1
 ```
 
+## Kinematics Proofs Mode
+
+The application includes an interactive **Kinematics Proofs** suite accessible via the top-level mode switcher, demonstrating fundamental Lie group and rotational identities with frame-by-frame 3D and matrix verification:
+
+### Proof 1: Cross Product Equivariance
+Demonstrates that the rotation operator distributes across the vector cross product:
+$$R(\vec{v} \times \vec{\omega}) = R(\vec{v}) \times R(\vec{\omega})$$
+- **Interactive SLERP Animation**: Smoothly rotates vectors $\vec{v}$ (Cyan) and $\vec{\omega}$ (Magenta) using quaternion SLERP interpolation.
+- **Visual Coincidence**: Renders the LHS $R(\vec{v} \times \vec{\omega})$ as a glowing yellow arrow and the RHS $R(\vec{v}) \times R(\vec{\omega})$ as an orange wireframe outline, proving continuous coincidence across all $t \in [0, 1]$.
+- **Pre-rotation Ghosts**: Semi-transparent ghost vectors persist at the original unrotated coordinates.
+- **Real-Time Verification**: Live calculation of Euclidean distance $| \text{LHS} - \text{RHS} | < 10^{-6}$ with success pulse.
+
+### Proof 2: Skew-Symmetric Adjoint Transformation
+Demonstrates the Lie group adjoint identity on the Lie algebra $\mathfrak{so}(3)$:
+$$R\,\hat{\omega}\,R^T = \widehat{(R\,\omega)}$$
+- **KaTeX Typeset Equations**: Rigorous symbolic lemma presentation.
+- **Step-by-Step LHS Derivation**: Displays reactive $3 \times 3$ matrix grids for $\hat{\omega}$, $R \cdot \hat{\omega}$, and $(R \cdot \hat{\omega}) \cdot R^T$.
+- **Step-by-Step RHS Derivation**: Displays transformed vector $R\vec{\omega}$ and its skew-symmetric cross-product matrix $\widehat{(R\omega)}$.
+- **Cell-by-Cell Equivalence Check**: Reactive 9-cell comparison matrix with green match indicators confirming $\max_{i,j} | \text{LHS}_{ij} - \text{RHS}_{ij} | < 10^{-6}$.
+- **3D Preview Viewport**: Visual preview comparing $\vec{\omega}$ and $R\vec{\omega}$.
+
 ## Tech Stack
 * **Frontend:** HTML5, CSS3 (Responsive Grid/Flexbox UI)
 * **3D Graphics:** [Three.js](https://threejs.org/)
@@ -93,12 +114,16 @@ For any valid spatial rotation, the determinant of the transformation matrix is 
 ## How to Run Locally
 This application runs entirely client-side and does not require a backend server. 
 
+**Option 1: Clone and Run**
 1. Clone the repository: 
    ```bash
-   git clone [https://github.com/Dhrumil0309/3d-rotation-visualizer.git](https://github.com/Dhrumil0309/3d-rotation-visualizer.git)
+   git clone https://github.com/Dhrumil0309/3d-rotation-visualizer.git
    ```
 2. Navigate to the project directory.
 3. Open `index.html` in any modern web browser. 
+
+**Option 2: Direct File Open**
+Open `index.html` directly in a browser supporting local ES modules.
 
 ## Author
 **Bhutaiya Dhrumil Pareshbhai**  

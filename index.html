@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rotational Kinematics Visualizer | 3D Rigid-Body Orientation</title>
-  <meta name="description" content="Interactive 3D rigid-body rotational kinematics visualizer with intrinsic Euler angles, Direction Cosines (l,m,n), 3x3 rotation matrix, determinant, and translation offsets." />
+  <title>Rotational Kinematics Visualizer | 3D Rigid-Body Orientation & Kinematics Proofs</title>
+  <meta name="description" content="Interactive 3D rigid-body rotational kinematics visualizer with intrinsic Euler angles, Direction Cosines (l,m,n), 3x3 rotation matrix, determinant, translation offsets, and live interactive Kinematics Proofs." />
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,6 +14,10 @@
   
   <!-- Math.js library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.js"></script>
+
+  <!-- KaTeX for typeset mathematical proofs -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   
   <!-- Three.js via import map (ES modules) -->
   <script type="importmap">
@@ -27,7 +31,7 @@
 </head>
 <body>
   <div class="app-layout">
-    <!-- Header -->
+    <!-- Header with Top-Level Mode Switcher -->
     <header class="app-header">
       <div class="header-brand">
         <div class="brand-icon">
@@ -39,243 +43,534 @@
         </div>
         <h1>Rotational Kinematics Visualizer</h1>
       </div>
+
+      <!-- Mode Switcher Nav -->
+      <nav id="mode-switcher" class="mode-switcher" aria-label="Application View Mode">
+        <button id="tab-explorer" class="mode-tab active" type="button">Rotation Explorer</button>
+        <button id="tab-proofs" class="mode-tab" type="button">Kinematics Proofs</button>
+      </nav>
+
       <div class="header-badge">Z (Yaw) &rarr; Y (Pitch) &rarr; X (Roll) &bull; Intrinsic</div>
     </header>
 
-    <!-- Main 3-Column Dashboard -->
-    <main class="dashboard-body">
-      <!-- Left Panel: Controls (Euler, Axis, Translation) -->
-      <aside class="side-panel controls-sidebar" aria-label="Kinematics Controls">
-        <div class="sidebar-scrollable">
-          <!-- 1. Euler Angles -->
-          <section class="control-card">
-            <div class="card-title">
-              <h3>Euler Angles (Deg)</h3>
-              <span class="card-subtitle">Intrinsic Z-Y-X</span>
-            </div>
+    <!-- MODE 1: ROTATION EXPLORER (Existing app, untouched inside container) -->
+    <div id="rotation-explorer-root" class="explorer-root">
+      <main class="dashboard-body">
+        <!-- Left Panel: Controls (Euler, Axis, Translation) -->
+        <aside class="side-panel controls-sidebar" aria-label="Kinematics Controls">
+          <div class="sidebar-scrollable">
+            <!-- 1. Euler Angles -->
+            <section class="control-card">
+              <div class="card-title">
+                <h3>Euler Angles (Deg)</h3>
+                <span class="card-subtitle">Intrinsic Z-Y-X</span>
+              </div>
 
-            <div class="inputs-stack">
-              <!-- Yaw (Z) -->
-              <div class="input-row-group" id="yaw-group">
-                <div class="input-label-row">
-                  <label for="yaw-num">
-                    <span class="axis-tag z-tag">Z</span>
-                    Yaw (<span class="math-sym">ψ</span>)
-                  </label>
-                  <div class="number-input-wrapper">
-                    <input type="number" id="yaw-num" min="-180" max="180" step="0.5" value="0.0" aria-label="Yaw angle value" />
-                    <span class="unit-deg">°</span>
+              <div class="inputs-stack">
+                <!-- Yaw (Z) -->
+                <div class="input-row-group" id="yaw-group">
+                  <div class="input-label-row">
+                    <label for="yaw-num">
+                      <span class="axis-tag z-tag">Z</span>
+                      Yaw (<span class="math-sym">ψ</span>)
+                    </label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="yaw-num" min="-180" max="180" step="0.5" value="0.0" aria-label="Yaw angle value" />
+                      <span class="unit-deg">°</span>
+                    </div>
+                  </div>
+                  <input type="range" id="yaw" min="-180" max="180" step="0.5" value="0" aria-label="Yaw angle slider" />
+                </div>
+
+                <!-- Pitch (Y) -->
+                <div class="input-row-group" id="pitch-group">
+                  <div class="input-label-row">
+                    <label for="pitch-num">
+                      <span class="axis-tag y-tag">Y</span>
+                      Pitch (<span class="math-sym">θ</span>)
+                    </label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="pitch-num" min="-180" max="180" step="0.5" value="0.0" aria-label="Pitch angle value" />
+                      <span class="unit-deg">°</span>
+                    </div>
+                  </div>
+                  <input type="range" id="pitch" min="-180" max="180" step="0.5" value="0" aria-label="Pitch angle slider" />
+                </div>
+
+                <!-- Roll (X) -->
+                <div class="input-row-group" id="roll-group">
+                  <div class="input-label-row">
+                    <label for="roll-num">
+                      <span class="axis-tag x-tag">X</span>
+                      Roll (<span class="math-sym">φ</span>)
+                    </label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="roll-num" min="-180" max="180" step="0.5" value="0.0" aria-label="Roll angle value" />
+                      <span class="unit-deg">°</span>
+                    </div>
+                  </div>
+                  <input type="range" id="roll" min="-180" max="180" step="0.5" value="0" aria-label="Roll angle slider" />
+                </div>
+              </div>
+            </section>
+
+            <!-- 2. Direction Cosines / Rotation Axis (l, m, n) -->
+            <section class="control-card">
+              <div class="card-title">
+                <h3>Direction Cosines / Axis (<span class="math-sym">l, m, n</span>)</h3>
+                <span class="card-subtitle">Principal Rotation Axis</span>
+              </div>
+              <div class="axis-inputs-grid">
+                <div class="axis-field">
+                  <label for="axis-l"><span class="math-sym">l</span> (X):</label>
+                  <input type="number" id="axis-l" step="0.01" value="0.000" placeholder="0.000" />
+                </div>
+                <div class="axis-field">
+                  <label for="axis-m"><span class="math-sym">m</span> (Y):</label>
+                  <input type="number" id="axis-m" step="0.01" value="0.000" placeholder="0.000" />
+                </div>
+                <div class="axis-field">
+                  <label for="axis-n"><span class="math-sym">n</span> (Z):</label>
+                  <input type="number" id="axis-n" step="0.01" value="1.000" placeholder="1.000" />
+                </div>
+              </div>
+              <div class="axis-toggle-row">
+                <label class="checkbox-label" for="toggle-principal-axis">
+                  <input type="checkbox" id="toggle-principal-axis" checked />
+                  <span>Show Principal Rotation Axis</span>
+                </label>
+              </div>
+              <p class="field-hint">Editing aligns frames along unit vector (<span class="math-sym">l, m, n</span>).</p>
+            </section>
+
+            <!-- 3. Translation Controls (Origin Offset) -->
+            <section class="control-card">
+              <div class="card-title">
+                <h3>Body Origin Translation</h3>
+                <span class="card-subtitle">Offset from Ground (X, Y, Z)</span>
+              </div>
+
+              <div class="inputs-stack">
+                <!-- Trans X -->
+                <div class="input-row-group">
+                  <div class="input-label-row">
+                    <label for="trans-x-num">
+                      <span class="axis-tag x-tag">X</span>
+                      Offset X
+                    </label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="trans-x-num" min="-10" max="10" step="0.1" value="0.0" />
+                    </div>
+                  </div>
+                  <input type="range" id="trans-x" min="-10" max="10" step="0.1" value="0" />
+                </div>
+
+                <!-- Trans Y -->
+                <div class="input-row-group">
+                  <div class="input-label-row">
+                    <label for="trans-y-num">
+                      <span class="axis-tag y-tag">Y</span>
+                      Offset Y
+                    </label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="trans-y-num" min="-10" max="10" step="0.1" value="0.0" />
+                    </div>
+                  </div>
+                  <input type="range" id="trans-y" min="-10" max="10" step="0.1" value="0" />
+                </div>
+
+                <!-- Trans Z -->
+                <div class="input-row-group">
+                  <div class="input-label-row">
+                    <label for="trans-z-num">
+                      <span class="axis-tag z-tag">Z</span>
+                      Offset Z
+                    </label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="trans-z-num" min="-10" max="10" step="0.1" value="0.0" />
+                    </div>
+                  </div>
+                  <input type="range" id="trans-z" min="-10" max="10" step="0.1" value="0" />
+                </div>
+              </div>
+            </section>
+
+            <!-- Reset Button -->
+            <button id="reset-btn" class="reset-button" type="button" aria-label="Reset orientation and position to identity">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              Reset to Identity (0, 0, 0)
+            </button>
+          </div>
+        </aside>
+
+        <!-- Center Panel: 3D Viewport -->
+        <section id="viewport" class="viewport-section" aria-label="3D Coordinate Frame Visualizer">
+          <div class="viewport-overlay">
+            <span class="viewport-tip">Left-drag: Orbit &bull; Right-drag: Pan &bull; Scroll: Zoom</span>
+          </div>
+        </section>
+
+        <!-- Right Panel: Mathematical Outputs (Matrix, Determinant, Principal Angle, Legend) -->
+        <aside class="side-panel output-sidebar" aria-label="Mathematical Analysis">
+          <div class="sidebar-scrollable">
+            <!-- 3x3 Rotation Matrix Card -->
+            <section class="output-card matrix-card">
+              <div class="card-title">
+                <h3>Rotation Matrix <span class="math-sym">R</span></h3>
+                <span class="card-subtitle">Ground &rarr; Body Frame</span>
+              </div>
+
+              <div class="matrix-bracket-container">
+                <div class="bracket-left">[</div>
+                <div id="matrix-grid" class="matrix-grid" role="region" aria-label="3 by 3 Rotation Matrix Elements">
+                  <!-- 9 matrix cell spans injected by ui.js -->
+                </div>
+                <div class="bracket-right">]</div>
+              </div>
+
+              <!-- Determinant Readout -->
+              <div class="det-row">
+                <span class="det-label">Matrix Determinant:</span>
+                <span id="det-output" class="det-badge">det(R) = 1.000</span>
+              </div>
+            </section>
+
+            <!-- Principal Rotation Angle Card -->
+            <section class="output-card angle-card">
+              <div class="card-title">
+                <h3>Principal Rotation Angle</h3>
+                <span class="card-subtitle">Euler's Theorem: <span class="math-sym">θ<sub>p</sub></span></span>
+              </div>
+
+              <div class="angle-display">
+                <p id="theta-output" class="theta-value">θ = 0.0°</p>
+              </div>
+              <p class="math-note">
+                Computed from <span class="math-sym">tr(R)</span>:
+                <code>θ = arccos((tr(R) − 1) / 2)</code>
+              </p>
+            </section>
+
+            <!-- Legend Card -->
+            <section class="output-card legend-card">
+              <div class="card-title">
+                <h3>Coordinate Frames</h3>
+              </div>
+              <div class="legend-list">
+                <div class="legend-item">
+                  <span class="swatch ground" aria-hidden="true"></span>
+                  <div class="legend-text">
+                    <strong>Ground Frame</strong>
+                    <span>Fixed Origin (0,0,0) &bull; Muted Gray</span>
                   </div>
                 </div>
-                <input type="range" id="yaw" min="-180" max="180" step="0.5" value="0" aria-label="Yaw angle slider" />
-              </div>
-
-              <!-- Pitch (Y) -->
-              <div class="input-row-group" id="pitch-group">
-                <div class="input-label-row">
-                  <label for="pitch-num">
-                    <span class="axis-tag y-tag">Y</span>
-                    Pitch (<span class="math-sym">θ</span>)
-                  </label>
-                  <div class="number-input-wrapper">
-                    <input type="number" id="pitch-num" min="-180" max="180" step="0.5" value="0.0" aria-label="Pitch angle value" />
-                    <span class="unit-deg">°</span>
+                <div class="legend-item">
+                  <span class="swatch body" aria-hidden="true"></span>
+                  <div class="legend-text">
+                    <strong>Body Frame</strong>
+                    <span>Rigid Body &bull; RGB Solid Triad</span>
                   </div>
                 </div>
-                <input type="range" id="pitch" min="-180" max="180" step="0.5" value="0" aria-label="Pitch angle slider" />
-              </div>
-
-              <!-- Roll (X) -->
-              <div class="input-row-group" id="roll-group">
-                <div class="input-label-row">
-                  <label for="roll-num">
-                    <span class="axis-tag x-tag">X</span>
-                    Roll (<span class="math-sym">φ</span>)
-                  </label>
-                  <div class="number-input-wrapper">
-                    <input type="number" id="roll-num" min="-180" max="180" step="0.5" value="0.0" aria-label="Roll angle value" />
-                    <span class="unit-deg">°</span>
+                <div class="legend-item">
+                  <span class="swatch axis" aria-hidden="true"></span>
+                  <div class="legend-text">
+                    <strong>Euler Axis (<span class="math-sym">l, m, n</span>)</strong>
+                    <span>Instantaneous Rotation Vector &bull; Amber</span>
                   </div>
                 </div>
-                <input type="range" id="roll" min="-180" max="180" step="0.5" value="0" aria-label="Roll angle slider" />
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
+        </aside>
+      </main>
+    </div>
 
-          <!-- 2. Direction Cosines / Rotation Axis (l, m, n) -->
-          <section class="control-card">
-            <div class="card-title">
-              <h3>Direction Cosines / Axis (<span class="math-sym">l, m, n</span>)</h3>
-              <span class="card-subtitle">Principal Rotation Axis</span>
-            </div>
-            <div class="axis-inputs-grid">
-              <div class="axis-field">
-                <label for="axis-l"><span class="math-sym">l</span> (X):</label>
-                <input type="number" id="axis-l" step="0.01" value="0.000" placeholder="0.000" />
-              </div>
-              <div class="axis-field">
-                <label for="axis-m"><span class="math-sym">m</span> (Y):</label>
-                <input type="number" id="axis-m" step="0.01" value="0.000" placeholder="0.000" />
-              </div>
-              <div class="axis-field">
-                <label for="axis-n"><span class="math-sym">n</span> (Z):</label>
-                <input type="number" id="axis-n" step="0.01" value="1.000" placeholder="1.000" />
-              </div>
-            </div>
-            <div class="axis-toggle-row">
-              <label class="checkbox-label" for="toggle-principal-axis">
-                <input type="checkbox" id="toggle-principal-axis" checked />
-                <span>Show Principal Rotation Axis</span>
-              </label>
-            </div>
-            <p class="field-hint">Editing aligns frames along unit vector (<span class="math-sym">l, m, n</span>).</p>
-          </section>
+    <!-- MODE 2: KINEMATICS PROOFS (New Mode Subtree) -->
+    <div id="kinematics-proofs-root" class="proofs-root" style="display:none;">
+      <!-- Sub-Tabs Navigation -->
+      <nav id="proof-sub-tabs" class="proof-sub-tabs" aria-label="Kinematics Proofs Tabs">
+        <button id="subtab-cross" class="proof-subtab active" type="button">Proof 1: Cross Product Equivariance</button>
+        <button id="subtab-adjoint" class="proof-subtab" type="button">Proof 2: Skew-Symmetric Adjoint Transformation</button>
+      </nav>
 
-          <!-- 3. Translation Controls (Origin Offset) -->
-          <section class="control-card">
-            <div class="card-title">
-              <h3>Body Origin Translation</h3>
-              <span class="card-subtitle">Offset from Ground (X, Y, Z)</span>
+      <!-- PROOF 1: CROSS PRODUCT EQUIVARIANCE -->
+      <section id="proof-cross-panel" class="proof-panel active">
+        <div class="proof-cross-main">
+          <!-- 3D Canvas Viewport -->
+          <div id="proof1-viewport" class="proof-viewport-container" aria-label="Proof 1 3D Canvas">
+            <div class="viewport-overlay">
+              <span class="viewport-tip">Left-drag: Orbit &bull; Right-drag: Pan &bull; Scroll: Zoom</span>
             </div>
+          </div>
 
-            <div class="inputs-stack">
-              <!-- Trans X -->
-              <div class="input-row-group">
-                <div class="input-label-row">
-                  <label for="trans-x-num">
-                    <span class="axis-tag x-tag">X</span>
-                    Offset X
-                  </label>
-                  <div class="number-input-wrapper">
-                    <input type="number" id="trans-x-num" min="-10" max="10" step="0.1" value="0.0" />
+          <!-- Controls Sidebar -->
+          <aside class="proof-sidebar">
+            <div class="sidebar-scrollable">
+              <!-- Vector Inputs -->
+              <section class="control-card">
+                <div class="card-title">
+                  <h3>Vector Inputs</h3>
+                  <span class="card-subtitle">Initial 3D vectors</span>
+                </div>
+                <div class="vector-input-group">
+                  <div class="vector-input-row">
+                    <span class="vector-tag cyan">v⃗</span>
+                    <div class="coord-inputs">
+                      <label>X:<input type="number" id="proof1-vx" step="0.1" value="1.8" /></label>
+                      <label>Y:<input type="number" id="proof1-vy" step="0.1" value="1.2" /></label>
+                      <label>Z:<input type="number" id="proof1-vz" step="0.1" value="0.0" /></label>
+                    </div>
+                  </div>
+                  <div class="vector-input-row">
+                    <span class="vector-tag magenta">ω⃗</span>
+                    <div class="coord-inputs">
+                      <label>X:<input type="number" id="proof1-wx" step="0.1" value="0.0" /></label>
+                      <label>Y:<input type="number" id="proof1-wy" step="0.1" value="1.5" /></label>
+                      <label>Z:<input type="number" id="proof1-wz" step="0.1" value="1.8" /></label>
+                    </div>
                   </div>
                 </div>
-                <input type="range" id="trans-x" min="-10" max="10" step="0.1" value="0" />
-              </div>
+              </section>
 
-              <!-- Trans Y -->
-              <div class="input-row-group">
-                <div class="input-label-row">
-                  <label for="trans-y-num">
-                    <span class="axis-tag y-tag">Y</span>
-                    Offset Y
-                  </label>
-                  <div class="number-input-wrapper">
-                    <input type="number" id="trans-y-num" min="-10" max="10" step="0.1" value="0.0" />
+              <!-- Independent Rotation Sliders -->
+              <section class="control-card">
+                <div class="card-title">
+                  <h3>Rotation R</h3>
+                  <span class="card-subtitle">Euler Angles (Deg)</span>
+                </div>
+                <div class="inputs-stack">
+                  <div class="input-row-group">
+                    <div class="input-label-row">
+                      <label for="proof1-yaw-num"><span class="axis-tag z-tag">Z</span> Yaw (ψ)</label>
+                      <div class="number-input-wrapper">
+                        <input type="number" id="proof1-yaw-num" min="-180" max="180" step="0.5" value="45.0" />
+                        <span class="unit-deg">°</span>
+                      </div>
+                    </div>
+                    <input type="range" id="proof1-yaw" min="-180" max="180" step="0.5" value="45" />
+                  </div>
+
+                  <div class="input-row-group">
+                    <div class="input-label-row">
+                      <label for="proof1-pitch-num"><span class="axis-tag y-tag">Y</span> Pitch (θ)</label>
+                      <div class="number-input-wrapper">
+                        <input type="number" id="proof1-pitch-num" min="-180" max="180" step="0.5" value="30.0" />
+                        <span class="unit-deg">°</span>
+                      </div>
+                    </div>
+                    <input type="range" id="proof1-pitch" min="-180" max="180" step="0.5" value="30" />
+                  </div>
+
+                  <div class="input-row-group">
+                    <div class="input-label-row">
+                      <label for="proof1-roll-num"><span class="axis-tag x-tag">X</span> Roll (φ)</label>
+                      <div class="number-input-wrapper">
+                        <input type="number" id="proof1-roll-num" min="-180" max="180" step="0.5" value="-20.0" />
+                        <span class="unit-deg">°</span>
+                      </div>
+                    </div>
+                    <input type="range" id="proof1-roll" min="-180" max="180" step="0.5" value="-20" />
                   </div>
                 </div>
-                <input type="range" id="trans-y" min="-10" max="10" step="0.1" value="0" />
+              </section>
+
+              <!-- Actions -->
+              <div class="proof-actions-row">
+                <button id="proof1-animate-btn" class="primary-btn" type="button">▶ Animate Rotation</button>
+                <button id="proof1-reset-btn" class="reset-button" type="button">Reset</button>
               </div>
 
-              <!-- Trans Z -->
-              <div class="input-row-group">
-                <div class="input-label-row">
-                  <label for="trans-z-num">
-                    <span class="axis-tag z-tag">Z</span>
-                    Offset Z
-                  </label>
-                  <div class="number-input-wrapper">
-                    <input type="number" id="trans-z-num" min="-10" max="10" step="0.1" value="0.0" />
-                  </div>
+              <!-- Legend -->
+              <section class="control-card legend-card">
+                <div class="card-title"><h3>Visual Elements</h3></div>
+                <div class="legend-list">
+                  <div class="legend-item"><span class="swatch-dot cyan"></span><span><strong>v⃗</strong> (Cyan)</span></div>
+                  <div class="legend-item"><span class="swatch-dot magenta"></span><span><strong>ω⃗</strong> (Magenta)</span></div>
+                  <div class="legend-item"><span class="swatch-dot yellow"></span><span><strong>LHS: R(v⃗×ω⃗)</strong> (Glowing Yellow)</span></div>
+                  <div class="legend-item"><span class="swatch-dot orange"></span><span><strong>RHS: R(v⃗)×R(ω⃗)</strong> (Orange Outline)</span></div>
+                  <div class="legend-item"><span class="swatch-dot ghost"></span><span><strong>Ghosts</strong> (Pre-rotation poses)</span></div>
                 </div>
-                <input type="range" id="trans-z" min="-10" max="10" step="0.1" value="0" />
-              </div>
+              </section>
             </div>
-          </section>
-
-          <!-- Reset Button -->
-          <button id="reset-btn" class="reset-button" type="button" aria-label="Reset orientation and position to identity">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-              <path d="M3 3v5h5"></path>
-            </svg>
-            Reset to Identity (0, 0, 0)
-          </button>
+          </aside>
         </div>
-      </aside>
 
-      <!-- Center Panel: 3D Viewport -->
-      <section id="viewport" class="viewport-section" aria-label="3D Coordinate Frame Visualizer">
-        <div class="viewport-overlay">
-          <span class="viewport-tip">Left-drag: Orbit &bull; Right-drag: Pan &bull; Scroll: Zoom</span>
-        </div>
+        <!-- Proof 1 Live Readout Footer -->
+        <footer class="proof-readout-bar">
+          <div class="readout-item">
+            <span class="readout-label">Pre-rotation v⃗ × ω⃗:</span>
+            <span id="proof1-readout-cross0" class="readout-val">(0.000, 0.000, 0.000)</span>
+          </div>
+          <div class="readout-divider"></div>
+          <div class="readout-item">
+            <span class="readout-label">LHS: R(v⃗ × ω⃗):</span>
+            <span id="proof1-readout-lhs" class="readout-val highlight-lhs">(0.000, 0.000, 0.000)</span>
+          </div>
+          <div class="readout-divider"></div>
+          <div class="readout-item">
+            <span class="readout-label">RHS: R(v⃗) × R(ω⃗):</span>
+            <span id="proof1-readout-rhs" class="readout-val highlight-rhs">(0.000, 0.000, 0.000)</span>
+          </div>
+          <div id="proof1-badge" class="proof-badge match">
+            ✅ MATCH — R(v⃗×ω⃗) = R(v⃗)×R(ω⃗)
+          </div>
+        </footer>
       </section>
 
-      <!-- Right Panel: Mathematical Outputs (Matrix, Determinant, Principal Angle, Legend) -->
-      <aside class="side-panel output-sidebar" aria-label="Mathematical Analysis">
-        <div class="sidebar-scrollable">
-          <!-- 3x3 Rotation Matrix Card -->
-          <section class="output-card matrix-card">
-            <div class="card-title">
-              <h3>Rotation Matrix <span class="math-sym">R</span></h3>
-              <span class="card-subtitle">Ground &rarr; Body Frame</span>
-            </div>
-
-            <div class="matrix-bracket-container">
-              <div class="bracket-left">[</div>
-              <div id="matrix-grid" class="matrix-grid" role="region" aria-label="3 by 3 Rotation Matrix Elements">
-                <!-- 9 matrix cell spans injected by ui.js -->
+      <!-- PROOF 2: SKEW-SYMMETRIC ADJOINT TRANSFORMATION -->
+      <section id="proof-adjoint-panel" class="proof-panel" style="display:none;">
+        <div class="adjoint-scroll-container">
+          <!-- Top Row: Lemma Banner + Interactive Inputs & 3D Preview -->
+          <div class="adjoint-top-grid">
+            <!-- 3D Preview -->
+            <div id="proof2-viewport" class="proof-viewport-container mini-preview" aria-label="Proof 2 3D Preview">
+              <div class="viewport-overlay">
+                <span class="viewport-tip">3D Preview: ω⃗ (Magenta) vs Rω⃗ (Cyan)</span>
               </div>
-              <div class="bracket-right">]</div>
             </div>
 
-            <!-- Determinant Readout -->
-            <div class="det-row">
-              <span class="det-label">Matrix Determinant:</span>
-              <span id="det-output" class="det-badge">det(R) = 1.000</span>
-            </div>
-          </section>
+            <!-- Inputs Card -->
+            <div class="control-card adjoint-inputs-card">
+              <div class="card-title">
+                <h3>Inputs & Rotation</h3>
+                <span class="card-subtitle">Vector ω⃗ & Orientation R</span>
+              </div>
 
-          <!-- Principal Rotation Angle Card -->
-          <section class="output-card angle-card">
-            <div class="card-title">
-              <h3>Principal Rotation Angle</h3>
-              <span class="card-subtitle">Euler's Theorem: <span class="math-sym">θ<sub>p</sub></span></span>
-            </div>
-
-            <div class="angle-display">
-              <p id="theta-output" class="theta-value">θ = 0.0°</p>
-            </div>
-            <p class="math-note">
-              Computed from <span class="math-sym">tr(R)</span>:
-              <code>θ = arccos((tr(R) − 1) / 2)</code>
-            </p>
-          </section>
-
-          <!-- Legend Card -->
-          <section class="output-card legend-card">
-            <div class="card-title">
-              <h3>Coordinate Frames</h3>
-            </div>
-            <div class="legend-list">
-              <div class="legend-item">
-                <span class="swatch ground" aria-hidden="true"></span>
-                <div class="legend-text">
-                  <strong>Ground Frame</strong>
-                  <span>Fixed Origin (0,0,0) &bull; Muted Gray</span>
+              <div class="vector-input-group">
+                <div class="vector-input-row">
+                  <span class="vector-tag magenta">ω⃗</span>
+                  <div class="coord-inputs">
+                    <label>X:<input type="number" id="proof2-wx" step="0.1" value="1.0" /></label>
+                    <label>Y:<input type="number" id="proof2-wy" step="0.1" value="2.0" /></label>
+                    <label>Z:<input type="number" id="proof2-wz" step="0.1" value="1.5" /></label>
+                  </div>
                 </div>
               </div>
-              <div class="legend-item">
-                <span class="swatch body" aria-hidden="true"></span>
-                <div class="legend-text">
-                  <strong>Body Frame</strong>
-                  <span>Rigid Body &bull; RGB Solid Triad</span>
+
+              <!-- Euler Sliders -->
+              <div class="inputs-stack mini-sliders">
+                <div class="input-row-group">
+                  <div class="input-label-row">
+                    <label for="proof2-yaw-num"><span class="axis-tag z-tag">Z</span> Yaw</label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="proof2-yaw-num" min="-180" max="180" step="0.5" value="30.0" />
+                      <span class="unit-deg">°</span>
+                    </div>
+                  </div>
+                  <input type="range" id="proof2-yaw" min="-180" max="180" step="0.5" value="30" />
+                </div>
+
+                <div class="input-row-group">
+                  <div class="input-label-row">
+                    <label for="proof2-pitch-num"><span class="axis-tag y-tag">Y</span> Pitch</label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="proof2-pitch-num" min="-180" max="180" step="0.5" value="45.0" />
+                      <span class="unit-deg">°</span>
+                    </div>
+                  </div>
+                  <input type="range" id="proof2-pitch" min="-180" max="180" step="0.5" value="45" />
+                </div>
+
+                <div class="input-row-group">
+                  <div class="input-label-row">
+                    <label for="proof2-roll-num"><span class="axis-tag x-tag">X</span> Roll</label>
+                    <div class="number-input-wrapper">
+                      <input type="number" id="proof2-roll-num" min="-180" max="180" step="0.5" value="15.0" />
+                      <span class="unit-deg">°</span>
+                    </div>
+                  </div>
+                  <input type="range" id="proof2-roll" min="-180" max="180" step="0.5" value="15" />
                 </div>
               </div>
-              <div class="legend-item">
-                <span class="swatch axis" aria-hidden="true"></span>
-                <div class="legend-text">
-                  <strong>Euler Axis (<span class="math-sym">l, m, n</span>)</strong>
-                  <span>Instantaneous Rotation Vector &bull; Amber</span>
+
+              <button id="proof2-reset-btn" class="reset-button" type="button">Reset Inputs</button>
+            </div>
+
+            <!-- KaTeX Lemma Banner -->
+            <div class="lemma-banner-card">
+              <div class="lemma-title">Lie Group Adjoint Identity on so(3)</div>
+              <div class="katex-render-box">
+                <span id="katex-lemma"></span>
+              </div>
+              <p class="lemma-desc">
+                For any rotation matrix <span class="math-sym">R &isin; SO(3)</span> and vector <span class="math-sym">&omega; &isin; &reals;<sup>3</sup></span>, rotating the cross-product matrix representation <span class="math-sym">&omega;&#770;</span> by congruence <span class="math-sym">R &omega;&#770; R<sup>T</sup></span> is identically equal to the cross-product matrix of the rotated vector <span class="math-sym">(R&omega;)&#770;</span>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Derivation Grids Row -->
+          <div class="adjoint-derivations-grid">
+            <!-- LHS Card -->
+            <div class="output-card derivation-card">
+              <div class="card-title">
+                <h3>Left-Hand Side (LHS) Derivation</h3>
+                <span class="card-tag">Congruence Transformation</span>
+              </div>
+
+              <div class="derivation-steps-katex">
+                <div class="step-card-katex">
+                  <div class="step-badge">Step 1 &bull; Skew-Symmetric Cross Matrix</div>
+                  <div id="katex-step1" class="katex-matrix-display"></div>
+                </div>
+
+                <div class="step-card-katex">
+                  <div class="step-badge">Step 2 &bull; Pre-multiply by Rotation R</div>
+                  <div id="katex-step2" class="katex-matrix-display"></div>
+                </div>
+
+                <div class="step-card-katex highlight-lhs-card">
+                  <div class="step-badge highlight">Step 3 &bull; Post-multiply by Rᵀ (LHS Result)</div>
+                  <div id="katex-step3" class="katex-matrix-display"></div>
                 </div>
               </div>
             </div>
-          </section>
+
+            <!-- RHS Card -->
+            <div class="output-card derivation-card">
+              <div class="card-title">
+                <h3>Right-Hand Side (RHS) Derivation</h3>
+                <span class="card-tag">Transformed Vector Skew Matrix</span>
+              </div>
+
+              <div class="derivation-steps-katex">
+                <div class="step-card-katex">
+                  <div class="step-badge">Step 1 &bull; Rotate Vector: R &middot; ω⃗</div>
+                  <div id="katex-rhs-step1" class="katex-matrix-display"></div>
+                </div>
+
+                <div class="step-card-katex highlight-rhs-card">
+                  <div class="step-badge highlight">Step 2 &bull; Form Skew Matrix (RHS Result)</div>
+                  <div id="katex-rhs-step2" class="katex-matrix-display"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom: Summary Equation & Error Matrix Card -->
+          <div id="proof2-comparison-card" class="output-card comparison-summary-card match-glow">
+            <div class="comparison-header">
+              <div class="comparison-title-block">
+                <h3>Equivalence Summary Equation: <span class="math-sym">LHS &minus; RHS = 0</span></h3>
+                <span class="card-subtitle">Direct Matrix Subtraction &amp; Error Verification</span>
+              </div>
+              <div id="proof2-badge" class="proof-badge match">
+                ✅ IDENTICAL — R ω̂ Rᵀ = (Rω⃗)^
+              </div>
+            </div>
+
+            <div id="katex-comparison-summary" class="katex-summary-display">
+              <!-- Dynamically generated KaTeX summary equation injected by adjoint-proof.js -->
+            </div>
+          </div>
         </div>
-      </aside>
-    </main>
+      </section>
+    </div>
   </div>
 
   <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/proofs/mode-switch.js"></script>
 </body>
 </html>
